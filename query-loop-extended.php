@@ -206,9 +206,23 @@ apply_filters('query_loop_block_query_vars', function($query, $block) {
 	return $query;
 }, 10, 2);
 
-wp_enqueue_script('query-loop-extended',
-	get_stylesheet_directory_uri() . '/query-loop-extended.js',
+wp_enqueue_script('query',
+	plugins_url('query-loop-extended.js', __FILE__),
 	array('wp-blocks', 'wp-editor'),
 );
+
+/*
+function create_query_loop_extended_block_init() {
+	if (function_exists('wp_register_block_types_from_metadata_collection')) wp_register_block_types_from_metadata_collection(__DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php');
+	elseif (function_exists('wp_register_block_metadata_collection')) wp_register_block_metadata_collection(__DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php');
+	else {
+		$manifest_data = require __DIR__ . '/build/blocks-manifest.php';
+		foreach ( array_keys( $manifest_data ) as $block_type ) {
+			register_block_type( __DIR__ . "/build/{$block_type}" );
+		}
+	}
+}
+add_action('init', 'create_query_loop_extended_block_init');
+*/
 
 ?>
