@@ -80,6 +80,9 @@ add_action('wp_loaded', function() {
 
 			if ($request->get_param('date_unit')) {
 				// if there's a date_unit, check both the unit (day, week, month, year) and date_range (1-12) and use those with the date_direction (before, after or within) and the date_relative (post_date, post_modified or today) to create a date query against one of the post dates, $date_posts (post_date or post_modified).
+				$post_date = $post->post_date;
+				$post_modified = $post->post_modified;
+				$today = date('Y-m-d H:i:s');
 				$date_unit = $request->get_param('date_unit');
 				$date_range = $request->get_param('date_range');
 				$date_direction = $request->get_param('date_direction');
