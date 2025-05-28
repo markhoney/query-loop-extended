@@ -106,16 +106,10 @@
 				// Date Range Restrictions
 
 				wp.element.createElement(wp.components.PanelBody, {title: 'Date Range', initialOpen: false}, [
-					wp.element.createElement(wp.components.RangeControl, {
-						label: 'Date Range',
-						min: 1,
-						max: 12,
-						value: props.attributes.query.date_range || 6,
-						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_range: value}}),
-					}),
 					wp.element.createElement(wp.components.SelectControl, {
 						label: 'Date Unit',
 						options: [
+							{label: 'None', value: ''},
 							{label: 'Days', value: 'day'},
 							{label: 'Weeks', value: 'week'},
 							{label: 'Months', value: 'month'},
@@ -123,6 +117,13 @@
 						],
 						value: props.attributes.query.date_unit || 'month',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_unit: value}}),
+					}),
+					wp.element.createElement(wp.components.RangeControl, {
+						label: 'Date Range',
+						min: 1,
+						max: 12,
+						value: props.attributes.query.date_range || 6,
+						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_range: value}}),
 					}),
 					wp.element.createElement(wp.components.SelectControl, {
 						label: 'Date Direction',
@@ -143,6 +144,15 @@
 						],
 						value: props.attributes.query.date_relative || 'post',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_relative: value}}),
+					}),
+					wp.element.createElement(wp.components.SelectControl, {
+						label: 'Relative to',
+						options: [
+							{label: 'Post Date', value: 'post_date'},
+							{label: 'Modified Date', value: 'post_modified'},
+						],
+						value: props.attributes.query.date_posts || 'post',
+						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_posts: value}}),
 					}),
 				]),
 

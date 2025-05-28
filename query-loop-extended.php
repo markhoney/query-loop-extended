@@ -78,8 +78,33 @@ add_action('wp_loaded', function() {
 
 			// Date Range Restrictions
 
-			if ($request->get_param('date_range')) {
-				//
+			if ($request->get_param('date_unit')) {
+				// if there's a date_unit, check both the unit (day, week, month, year) and date_range (1-12) and use those with the date_direction (before, after or within) and the date_relative (post_date, post_modified or today) to create a date query against one of the post dates, $date_posts (post_date or post_modified).
+				$date_unit = $request->get_param('date_unit');
+				$date_range = $request->get_param('date_range');
+				$date_direction = $request->get_param('date_direction');
+				$date_relative = $request->get_param('date_relative');
+				$date_posts = $request->get_param('date_posts');
+				$date_query = [];
+				$date_period =
+				if ($date_direction === 'before') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'before' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+						'after' =>
+					];
+				} elseif ($date_direction === 'after') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'after' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+					];
+				} elseif ($date_direction === 'within') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'before' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+						'after' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+					];
+				}
 			}
 
 			// Ordering of Posts
