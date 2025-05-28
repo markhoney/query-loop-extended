@@ -76,31 +76,10 @@ add_action('wp_loaded', function() {
 				$args['post__not_in'] = array_merge([$args['post__not_in']], [$post->id]);
 			}
 
-			if ($request->get_param('restrict')) {
-				if ($request->get_param('restrict') === 'sticky') {
-					$args['post__in'] = get_option('sticky_posts');
-				} else if ($request->get_param('restrict') === 'unsticky') {
-					$args['post__not_in'] = get_option('sticky_posts');
-				} else if ($request->get_param('restrict') === 'featured') {
-					$args['meta_key'] = 'featured';
-					$args['meta_value'] = '1';
-				} else if ($request->get_param('restrict') === 'unfeatured') {
-					$args['meta_key'] = 'featured';
-					$args['meta_value'] = '0';
-				}
-			}
-
 			// Date Range Restrictions
 
 			if ($request->get_param('date_range')) {
-				$args['date_query'] = [
-					'column' => $request->get_param('date_relative') === 'post' ? 'post_date' : 'post_modified',
-				];
-				if ($request->get_param('date_relative') === 'current') {
-					$args['date_query']['after'] = date('Y-m-d H:i:s', strtotime('-' . $request->get_param('date_range')));
-				} else if ($request->get_param('date_relative') === 'past') {
-					$args['date_query']['before'] = date('Y-m-d H:i:s', strtotime('-' . $request->get_param('date_range')));
-				}
+				//
 			}
 
 			// Ordering of Posts

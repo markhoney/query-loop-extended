@@ -93,25 +93,13 @@
 					}),
 				]),
 
-				// Inclusions/Exclusions for certain posts
+				// Exclusions for certain posts
 
 				wp.element.createElement(wp.components.PanelBody, {title: 'Exclude', initialOpen: false}, [
 					wp.element.createElement(wp.components.ToggleControl, {
 						label: 'Current Post',
 						checked: props.attributes.query.exclude_current || true,
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, exclude_current: value}}),
-					}),
-					wp.element.createElement(wp.components.SelectControl, {
-						label: 'Exclude Posts That Match',
-						options: [
-							{label: 'None', value: ''},
-							{label: 'Sticky only', value: 'sticky'},
-							{label: 'Not sticky', value: 'unsticky'},
-							{label: 'Featured only', value: 'featured'},
-							{label: 'Not featured', value: 'unfeatured'},
-						],
-						value: props.attributes.query.restrict,
-						onchange: (value) => props.setAttributes({query: {...props.attributes.query, restrict: value}}),
 					}),
 				]),
 
@@ -170,7 +158,7 @@
 							{label: 'Date', value: 'date'},
 							{label: 'Modified', value: 'modified'},
 							{label: 'Author', value: 'author'},
-							{label: 'Relevance', value: 'relevance'},
+							// {label: 'Relevance', value: 'relevance'},
 							{label: 'Random', value: 'rand'},
 							{label: 'Comment Count', value: 'comment_count'},
 							{label: 'Matching Tags', value: 'tags'},
