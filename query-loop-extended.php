@@ -89,23 +89,26 @@ add_action('wp_loaded', function() {
 				$date_relative = $request->get_param('date_relative');
 				$date_posts = $request->get_param('date_posts');
 				$date_query = [];
-				$date_period =
+				$date_earlier = date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}"));
+				$date_later = date('Y-m-d H:i:s', strtotime("+{$date_range} {$date_unit}"));
+				$date_compare_to = $date_relative === 'post' ? $post_date : ($date_relative === 'modified' ? $post_modified : $today);
 				if ($date_direction === 'before') {
 					$date_query[] = [
 						'column' => $date_posts,
-						'before' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
-						'after' =>
+						'before' => $date_compare_to,
+						'after' => $date_earlier,
 					];
 				} elseif ($date_direction === 'after') {
 					$date_query[] = [
 						'column' => $date_posts,
-						'after' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+						'before' => $date_later,
+						'after' => $date_compare_to,
 					];
 				} elseif ($date_direction === 'within') {
 					$date_query[] = [
 						'column' => $date_posts,
-						'before' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
-						'after' => date('Y-m-d H:i:s', strtotime("-{$date_range} {$date_unit}")),
+						'before' => $date_later,
+						'after' => $date_earlier,
 					];
 				}
 			}
