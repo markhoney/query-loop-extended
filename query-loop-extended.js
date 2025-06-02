@@ -25,6 +25,42 @@
 				inherit: false,
 			},
 		},
+		// https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
+		supports: {
+			anchor: true,
+			align: true,
+			background: {
+				backgroundImage: true,
+				backgroundSize: true,
+			},
+			color: {
+				gradients: true,
+				heading: true,
+				link: true,
+			},
+			dimensions: {
+				aspectRatio: true,
+				minHeight: true,
+			},
+			layout: {
+				// allowSwitching: true,
+				allowSizingOnChildren: false,
+			},
+			position: {
+				sticky: true,
+			},
+			shadow: true,
+			spacing: {
+				margin: true,
+				padding: true,
+				blockGap: true,
+			},
+			typography: {
+				fontSize: true,
+				lineHeight: true,
+				textAlign: true,
+			},
+		},
 		allowedControls: [
 			'inherit',
 			'postType',
