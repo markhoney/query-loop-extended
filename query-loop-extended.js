@@ -1,5 +1,7 @@
 (() => {
 
+	// https://developer.wordpress.org/block-editor/how-to-guides/block-tutorial/extending-the-query-loop-block/
+
 	const namespace = 'honeychurch/query-loop-extended';
 
 	wp.blocks.registerBlockVariation('core/query', {
@@ -23,6 +25,15 @@
 				exclude: [],
 				sticky: '',
 				inherit: false,
+				relationship: '',
+				match: '',
+				pod_relationship: '',
+				exclude_current: true,
+				date_unit: 'month',
+				date_range: 6,
+				date_direction: 'within',
+				date_relative: 'post',
+				date_posts: 'post_date',
 			},
 		},
 		// https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
@@ -108,7 +119,7 @@
 							{label: 'Children', value: 'children'},
 							{label: 'Parent', value: 'parent'},
 						],
-						value: props.attributes.query.relationship || 'None',
+						value: props.attributes.query.relationship || '',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, relationship: value}}),
 					}),
 					wp.element.createElement(wp.components.SelectControl, {
@@ -119,7 +130,7 @@
 							{label: 'Categories', value: 'categories'},
 							{label: 'Tags', value: 'tags'},
 						],
-						value: props.attributes.query.match || 'None',
+						value: props.attributes.query.match || '',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, match: value}}),
 					}),
 					wp.element.createElement(wp.components.TextControl, {
