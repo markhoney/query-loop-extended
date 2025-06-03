@@ -214,6 +214,7 @@
 							{label: 'Random', value: 'rand'},
 							{label: 'Comment Count', value: 'comment_count'},
 							{label: 'Matching Tags', value: 'tags'},
+							{label: 'Views', value: 'views'},
 						],
 						value: props.attributes.query.orderBy || 'date',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, orderBy: value}}),

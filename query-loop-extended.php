@@ -114,12 +114,20 @@ apply_filters('query_loop_block_query_vars', function($query, $block) { // https
 
 			if ($query->orderBy) {
 				if ($query->orderBy === 'tags') {
-					// Add a filter to order by the number of tags that match the current post
+					// Add a filter to order by the number of tags that match the current post's tags
 					add_filter('posts_orderby', function($orderby, $query) {
 						global $wpdb;
 						if ($query->get('tag__in')) {
 							$orderby = "COUNT({$wpdb->term_relationships}.object_id) DESC";
 						}
+						return $orderby;
+					}, 10, 2);
+				} else if ($query->orderBy === 'views') {
+					// Add a filter to order by the number of views
+					add_filter('posts_orderby', function($orderby, $query) {
+						global $wpdb;
+						$orderby = "CAST({$wpdb->postmeta}.meta_value AS UNSIGNED) DESC";
+						$query->set('meta_key', 'post_views_count');
 						return $orderby;
 					}, 10, 2);
 				}
@@ -130,9 +138,6 @@ apply_filters('query_loop_block_query_vars', function($query, $block) { // https
 	}
 	return $query;
 }, 10, 2);
-
-
-
 
 
 
@@ -259,10 +264,26 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 }, 20);
 
 
+// Enqueue the block editor script
 wp_enqueue_script('query',
 	plugins_url('query-loop-extended.js', __FILE__),
 	array('wp-blocks', 'wp-editor'),
 );
+
+// Function to count post views
+function count_post_views() {
+	if (is_single()) {
+		global $post;
+		$views = get_post_meta($post->ID, 'post_views_count', true);
+		if ($views == '') {
+			update_post_meta($post->ID, 'post_views_count', 1);
+		} else {
+			$views++;
+			update_post_meta($post->ID, 'post_views_count', $views);
+		}
+	}
+}
+add_action('wp', 'count_post_views');
 
 /*
 function create_query_loop_extended_block_init() {
