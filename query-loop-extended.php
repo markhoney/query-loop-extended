@@ -20,9 +20,7 @@ $namespace = 'honeychurch/query-loop-extended';
 
 // Frontend query block query, using WP_Query
 
-// https://developer.wordpress.org/reference/classes/wp_query/
-
-apply_filters('query_loop_block_query_vars', function($query, $block) {
+apply_filters('query_loop_block_query_vars', function($query, $block) { // https://developer.wordpress.org/reference/classes/wp_query/
 	if ($block['attrs']['namespace'] === $namespace) {
 		add_filter('query_loop_block_query_vars', function($query) {
 
@@ -142,9 +140,7 @@ apply_filters('query_loop_block_query_vars', function($query, $block) {
 
 // Backend (editor) query block query, using the REST API
 
-// https://developer.wordpress.org/rest-api/reference/posts/#arguments
-
-add_action('wp_loaded', function() {
+add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api/reference/posts/#arguments
 	// post__in, post__not_in, search_columns, post_status (publish, etc), date_query
 	foreach (get_post_types(['public' => true], 'objects') as $post_type) {
 		add_filter("rest_" . $post_type->name . "_query", function($args, $request) {
@@ -244,8 +240,7 @@ add_action('wp_loaded', function() {
 			// Ordering of Posts
 
 			if ($request->get_param('orderBy')) {
-				if ($request->get_param('orderBy') === 'tags') {
-					// https://wordpress.org/support/topic/using-query-loop-block-to-show-related-posts/
+				if ($request->get_param('orderBy') === 'tags') { // https://wordpress.org/support/topic/using-query-loop-block-to-show-related-posts/
 					// Add a filter to order by the number of tags that match the current post
 					add_filter('posts_orderby', function($orderby, $query) use ($request) {
 						global $wpdb;
