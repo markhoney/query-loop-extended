@@ -14,6 +14,131 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
+$namespace = 'honeychurch/query-loop-extended';
+
+
+
+// Frontend query block query, using WP_Query
+
+// https://developer.wordpress.org/reference/classes/wp_query/
+
+apply_filters('query_loop_block_query_vars', function($query, $block) {
+	if ($block['attrs']['namespace'] === $namespace) {
+		add_filter('query_loop_block_query_vars', function($query) {
+
+			$post = get_post(get_the_ID());
+
+			// Filters to select which posts to show
+
+			if ($query->relationship) {
+				switch ($query->relationship) {
+					case 'children':
+						$query->set('post_parent', $post->id);
+						break;
+					case 'siblings':
+						$query->set('post_parent', wp_get_post_parent_id($post->id));
+						break;
+					case 'parent':
+						$query->set('post__in', [wp_get_post_parent_id($post->id)]);
+						break;
+				}
+			}
+			if ($query->match) {
+				switch ($query->match) {
+					case 'author':
+						$query->set('author', $post->post_author);
+						break;
+					case 'category':
+						$query->set('category__in', wp_get_post_categories($post->id));
+						break;
+					case 'tag':
+						$query->set('tag__in', wp_get_post_tags($post->id));
+						break;
+				}
+			}
+
+			if ($query->pod_relationship) {
+				if (function_exists('pods')) {
+					$pod = pods($post->post_type, $post->id, true);
+					$related = $pod->field($query->pod_relationship);
+					$ids = [];
+					foreach ($related as $item) $ids[] = $item['ID'];
+					$query->set['post__in'] = $ids;
+				}
+			}
+
+			// Inclusions/Exclusions for certain posts
+
+			if ($query->exclude_current) {
+				$query->set('post__not_in', array_merge([$query->get('post__not_in')], [$post->id]));
+			}
+
+			// Date Range Restrictions
+
+			if ($query->date_unit) {
+				$post_date = $post->post_date;
+				$post_modified = $post->post_modified;
+				$today = date('Y-m-d H:i:s');
+				$date_unit = $query->date_unit;
+				$date_range = $query->date_range;
+				$date_direction = $query->date_direction;
+				$date_relative = $query->date_relative;
+				$date_posts = $query->date_posts;
+				$date_query = [];
+				$date_compare_to = $date_relative === 'post' ? $post_date : ($date_relative === 'modified' ? $post_modified : $today);
+				$date_earlier = date('Y-m-d H:i:s', strtotime("{$date_compare_to} -{$date_range} {$date_unit}"));
+				$date_later = date('Y-m-d H:i:s', strtotime("{$date_compare_to} +{$date_range} {$date_unit}"));
+				if ($date_direction === 'before') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'after' => $date_earlier,
+						'before' => $date_compare_to,
+					];
+				} elseif ($date_direction === 'after') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'after' => $date_compare_to,
+						'before' => $date_later,
+					];
+				} elseif ($date_direction === 'within') {
+					$date_query[] = [
+						'column' => $date_posts,
+						'after' => $date_earlier,
+						'before' => $date_later,
+					];
+				}
+				if (!empty($date_query)) {
+					$query->set('date_query', $date_query);
+				}
+			}
+
+			// Ordering of Posts
+
+			if ($query->orderBy) {
+				if ($query->orderBy === 'tags') {
+					// Add a filter to order by the number of tags that match the current post
+					add_filter('posts_orderby', function($orderby, $query) {
+						global $wpdb;
+						if ($query->get('tag__in')) {
+							$orderby = "COUNT({$wpdb->term_relationships}.object_id) DESC";
+						}
+						return $orderby;
+					}, 10, 2);
+				}
+			}
+
+			return $query;
+		}, 10, 2);
+	}
+	return $query;
+}, 10, 2);
+
+
+
+
+
+
+
 
 // Backend (editor) query block query, using the REST API
 
@@ -138,113 +263,6 @@ add_action('wp_loaded', function() {
 	}
 }, 20);
 
-
-// Frontend query block query, using WP_Query
-
-// https://developer.wordpress.org/reference/classes/wp_query/
-
-apply_filters('query_loop_block_query_vars', function($query, $block) {
-	if ($block['attrs']['namespace'] === 'telesmart/query') {
-		add_filter('query_loop_block_query_vars', function($query) {
-			$post = get_post(get_the_ID());
-
-			if ($query->relationship) {
-				switch ($query->relationship) {
-					case 'children':
-						$query->set('post_parent', $post->id);
-						break;
-					case 'siblings':
-						$query->set('post_parent', wp_get_post_parent_id($post->id));
-						break;
-					case 'parent':
-						$query->set('post__in', [wp_get_post_parent_id($post->id)]);
-						break;
-				}
-			}
-			if ($query->match) {
-				switch ($query->match) {
-					case 'author':
-						$query->set('author', $post->post_author);
-						break;
-					case 'category':
-						$query->set('category__in', wp_get_post_categories($post->id));
-						break;
-					case 'tag':
-						$query->set('tag__in', wp_get_post_tags($post->id));
-						break;
-				}
-			}
-
-
-			if ($query->pod_relationship) {
-				if (function_exists('pods')) {
-					$pod = pods($post->post_type, $post->id, true);
-					$related = $pod->field($query->pod_relationship);
-					$ids = [];
-					foreach ($related as $item) $ids[] = $item['ID'];
-					$query->set['post__in'] = $ids;
-				}
-			}
-
-			if ($query->exclude_current) {
-				$query->set('post__not_in', array_merge([$query->get('post__not_in')], [$post->id]));
-			}
-
-			if ($query->date_unit) {
-				$post_date = $post->post_date;
-				$post_modified = $post->post_modified;
-				$today = date('Y-m-d H:i:s');
-				$date_unit = $query->date_unit;
-				$date_range = $query->date_range;
-				$date_direction = $query->date_direction;
-				$date_relative = $query->date_relative;
-				$date_posts = $query->date_posts;
-				$date_query = [];
-				$date_compare_to = $date_relative === 'post' ? $post_date : ($date_relative === 'modified' ? $post_modified : $today);
-				$date_earlier = date('Y-m-d H:i:s', strtotime("{$date_compare_to} -{$date_range} {$date_unit}"));
-				$date_later = date('Y-m-d H:i:s', strtotime("{$date_compare_to} +{$date_range} {$date_unit}"));
-				if ($date_direction === 'before') {
-					$date_query[] = [
-						'column' => $date_posts,
-						'after' => $date_earlier,
-						'before' => $date_compare_to,
-					];
-				} elseif ($date_direction === 'after') {
-					$date_query[] = [
-						'column' => $date_posts,
-						'after' => $date_compare_to,
-						'before' => $date_later,
-					];
-				} elseif ($date_direction === 'within') {
-					$date_query[] = [
-						'column' => $date_posts,
-						'after' => $date_earlier,
-						'before' => $date_later,
-					];
-				}
-				if (!empty($date_query)) {
-					$query->set('date_query', $date_query);
-				}
-			}
-
-			if ($query->orderBy) {
-				if ($query->orderBy === 'tags') {
-					// Add a filter to order by the number of tags that match the current post
-					add_filter('posts_orderby', function($orderby, $query) {
-						global $wpdb;
-						if ($query->get('tag__in')) {
-							$orderby = "COUNT({$wpdb->term_relationships}.object_id) DESC";
-						}
-						return $orderby;
-					}, 10, 2);
-				}
-			}
-
-			return $query;
-		}, 10, 2);
-	}
-	return $query;
-}, 10, 2);
 
 wp_enqueue_script('query',
 	plugins_url('query-loop-extended.js', __FILE__),

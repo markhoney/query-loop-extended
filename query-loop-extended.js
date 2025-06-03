@@ -1,6 +1,4 @@
-(() => {
-
-	// https://developer.wordpress.org/block-editor/how-to-guides/block-tutorial/extending-the-query-loop-block/
+(() => { // https://developer.wordpress.org/block-editor/how-to-guides/block-tutorial/extending-the-query-loop-block/
 
 	const namespace = 'honeychurch/query-loop-extended';
 
@@ -10,7 +8,18 @@
 		description: 'A Query Loop block with extended features for filtering and sorting posts.',
 		// category: 'widgets',
 		isActive: ['namespace'],
+		scope: ['inserter'],
 		icon: 'share-alt',
+		innerBlocks: [
+			[
+				'core/post-template',
+				// {layout: {type: 'grid', columns: 3}},
+				{},
+				[['core/group', {}, [['core/post-title'], ['core/post-excerpt']]]],
+			],
+			// ['core/query-pagination'],
+			// ['core/query-no-results'],
+		],
 		attributes: {
 			namespace,
 			query: {
@@ -36,8 +45,7 @@
 				date_posts: 'post_date',
 			},
 		},
-		// https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
-		supports: {
+		supports: { // https://developer.wordpress.org/block-editor/reference-guides/block-api/block-supports/
 			anchor: true,
 			align: true,
 			background: {
@@ -86,22 +94,9 @@
 			'offset',
 			'sort',
 		],
-		scope: ['inserter'],
-		innerBlocks: [
-			[
-				'core/post-template',
-				// {layout: {type: 'grid', columns: 3}},
-				{},
-				[['core/group', {}, [['core/post-title'], ['core/post-excerpt']]]],
-			],
-			// ['core/query-pagination'],
-			// ['core/query-no-results'],
-		],
 	});
 
-	// https://codex.wordpress.org/WordPress_Query_Vars
-
-	const customQueryControls = (BlockEdit) => (props) => {
+	const customQueryControls = (BlockEdit) => (props) => { // https://codex.wordpress.org/WordPress_Query_Vars
 		if (props.attributes.namespace !== namespace) return wp.element.createElement(BlockEdit, {key: "edit", ...props});
 		props.attributes.query.post_id = wp.media.view.settings.post.id;
 		return wp.element.createElement(wp.element.Fragment, {}, [
