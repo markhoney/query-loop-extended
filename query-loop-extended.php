@@ -127,7 +127,7 @@ apply_filters('query_loop_block_query_vars', function($query, $block) { // https
 					add_filter('posts_orderby', function($orderby, $query) {
 						global $wpdb;
 						$orderby = "CAST({$wpdb->postmeta}.meta_value AS UNSIGNED) DESC";
-						$query->set('meta_key', 'post_views_count');
+						$query->set('meta_key', 'views_count');
 						return $orderby;
 					}, 10, 2);
 				}
@@ -254,10 +254,17 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 						}
 						return $orderby;
 					}, 10, 2);
-
+				}
+				else if ($request->get_param('orderBy') === 'views') {
+					// Add a filter to order by the number of views
+					add_filter('posts_orderby', function($orderby, $query) use ($request) {
+						global $wpdb;
+						$orderby = "CAST({$wpdb->postmeta}.meta_value AS UNSIGNED) DESC";
+						$query->set('meta_key', 'views_count');
+						return $orderby;
+					}, 10, 2);
 				}
 			}
-
 			return $args;
 		}, 10, 2);
 	}
@@ -274,12 +281,12 @@ wp_enqueue_script('query',
 function count_post_views() {
 	if (is_single()) {
 		global $post;
-		$views = get_post_meta($post->ID, 'post_views_count', true);
+		$views = get_post_meta($post->ID, 'views_count', true);
 		if ($views == '') {
-			update_post_meta($post->ID, 'post_views_count', 1);
+			update_post_meta($post->ID, 'views_count', 1);
 		} else {
 			$views++;
-			update_post_meta($post->ID, 'post_views_count', $views);
+			update_post_meta($post->ID, 'views_count', $views);
 		}
 	}
 }
