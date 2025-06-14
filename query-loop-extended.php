@@ -17,7 +17,6 @@
 $namespace = 'honeychurch/query-loop-extended';
 
 
-
 // Frontend query block query, using WP_Query
 
 apply_filters('query_loop_block_query_vars', function($query, $block) { // https://developer.wordpress.org/reference/classes/wp_query/
@@ -291,6 +290,11 @@ function count_post_views() {
 	}
 }
 add_action('wp', 'count_post_views');
+
+/* function title_remove_ellipsis($title) {
+	return str_replace('&#8230;', '...', $title);
+}
+add_filter('the_title', 'title_remove_ellipsis', 20); */
 
 /*
 function create_query_loop_extended_block_init() {
