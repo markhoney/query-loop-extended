@@ -176,22 +176,22 @@
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_direction: value}}),
 					}),
 					wp.element.createElement(wp.components.SelectControl, {
-						label: 'Relative to',
+						label: 'Reference Date',
 						options: [
 							{label: 'Current Date', value: 'current'},
-							{label: 'Post Date', value: 'post'},
-							{label: 'Modified Date', value: 'modified'},
+							{label: "This Post's Published Date", value: 'post'},
+							{label: "This Post's Modified Date", value: 'modified'},
 						],
 						value: props.attributes.query.date_relative || 'post',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_relative: value}}),
 					}),
 					wp.element.createElement(wp.components.SelectControl, {
-						label: 'Relative to',
+						label: 'Posts Date to Compare with',
 						options: [
-							{label: 'Post Date', value: 'post_date'},
+							{label: 'Published Date', value: 'post_date'},
 							{label: 'Modified Date', value: 'post_modified'},
 						],
-						value: props.attributes.query.date_posts || 'post',
+						value: props.attributes.query.date_posts || 'post_date',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, date_posts: value}}),
 					}),
 				]),
@@ -220,10 +220,10 @@
 					wp.element.createElement(wp.components.SelectControl, {
 						label: 'Order Direction',
 						options: [
-							{label: 'Ascending', value: 'ASC'},
-							{label: 'Descending', value: 'DESC'},
+							{label: 'Ascending', value: 'asc'},
+							{label: 'Descending', value: 'desc'},
 						],
-						value: props.attributes.query.order || 'ASC',
+						value: props.attributes.query.order || 'desc',
 						onChange: (value) => props.setAttributes({query: {...props.attributes.query, order: value}}),
 					}),
 				]),

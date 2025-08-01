@@ -25,18 +25,29 @@ apply_filters('query_loop_block_query_vars', function($query, $block) { // https
 
 			$post = get_post(get_the_ID());
 
+			// Ensure we have a valid post
+			if (!$post) {
+				return $query;
+			}
+
 			// Filters to select which posts to show
 
 			if ($query->relationship) {
 				switch ($query->relationship) {
 					case 'children':
-						$query->set('post_parent', $post->id);
+						$query->set('post_parent', $post->ID);
 						break;
 					case 'siblings':
-						$query->set('post_parent', wp_get_post_parent_id($post->id));
+						$parent_id = wp_get_post_parent_id($post->ID);
+						if ($parent_id) {
+							$query->set('post_parent', $parent_id);
+						}
 						break;
 					case 'parent':
-						$query->set('post__in', [wp_get_post_parent_id($post->id)]);
+						$parent_id = wp_get_post_parent_id($post->ID);
+						if ($parent_id) {
+							$query->set('post__in', [$parent_id]);
+						}
 						break;
 				}
 			}
@@ -46,28 +57,46 @@ apply_filters('query_loop_block_query_vars', function($query, $block) { // https
 						$query->set('author', $post->post_author);
 						break;
 					case 'category':
-						$query->set('category__in', wp_get_post_categories($post->id));
+						$categories = wp_get_post_categories($post->ID);
+						if (!empty($categories)) {
+							$query->set('category__in', $categories);
+						}
 						break;
 					case 'tag':
-						$query->set('tag__in', wp_get_post_tags($post->id));
+						$tags = wp_get_post_tags($post->ID);
+						if (!empty($tags)) {
+							$tag_ids = wp_list_pluck($tags, 'term_id');
+							$query->set('tag__in', $tag_ids);
+						}
 						break;
 				}
 			}
 
 			if ($query->pod_relationship) {
 				if (function_exists('pods')) {
-					$pod = pods($post->post_type, $post->id, true);
-					$related = $pod->field($query->pod_relationship);
-					$ids = [];
-					foreach ($related as $item) $ids[] = $item['ID'];
-					$query->set['post__in'] = $ids;
+					$pod = pods($post->post_type, $post->ID, true);
+					if ($pod && $pod->valid()) {
+						$related = $pod->field($query->pod_relationship);
+						if ($related && is_array($related)) {
+							$ids = [];
+							foreach ($related as $item) {
+								if (isset($item['ID'])) {
+									$ids[] = $item['ID'];
+								}
+							}
+							if (!empty($ids)) {
+								$query->set('post__in', $ids);
+							}
+						}
+					}
 				}
 			}
 
 			// Inclusions/Exclusions for certain posts
 
 			if ($query->exclude_current) {
-				$query->set('post__not_in', array_merge([$query->get('post__not_in')], [$post->id]));
+				$existing_not_in = $query->get('post__not_in') ?: [];
+				$query->set('post__not_in', array_merge($existing_not_in, [$post->ID]));
 			}
 
 			// Date Range Restrictions
@@ -150,6 +179,11 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 		add_filter("rest_" . $post_type->name . "_query", function($args, $request) {
 			$post = get_post($request->get_param('post_id'));
 
+			// Ensure we have a valid post
+			if (!$post) {
+				return $args;
+			}
+
 			// error_log(print_r($request->get_param('post_id'), true));
 			// error_log(print_r($post->ID, true));
 
@@ -158,13 +192,25 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 			if ($request->get_param('relationship')) {
 				switch ($request->get_param('relationship')) {
 					case 'children':
-						$args['post__in'] = get_posts(['post_parent' => $post->id, 'fields' => 'ids']);
+						$children = get_posts(['post_parent' => $post->ID, 'fields' => 'ids']);
+						if (!empty($children)) {
+							$args['post__in'] = $children;
+						}
 						break;
 					case 'siblings':
-						$args['post_in'] = get_posts(['post_parent' => wp_get_post_parent_id($post->id), 'fields' => 'ids']);
+						$parent_id = wp_get_post_parent_id($post->ID);
+						if ($parent_id) {
+							$siblings = get_posts(['post_parent' => $parent_id, 'fields' => 'ids']);
+							if (!empty($siblings)) {
+								$args['post__in'] = $siblings;
+							}
+						}
 						break;
 					case 'parent':
-						$args['post__in'] = [wp_get_post_parent_id($post->id)];
+						$parent_id = wp_get_post_parent_id($post->ID);
+						if ($parent_id) {
+							$args['post__in'] = [$parent_id];
+						}
 						break;
 				}
 			}
@@ -175,10 +221,17 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 						$args['author'] = $post->post_author;
 						break;
 					case 'category':
-						$args['category__in'] = wp_get_post_categories($post->id);
+						$categories = wp_get_post_categories($post->ID);
+						if (!empty($categories)) {
+							$args['category__in'] = $categories;
+						}
 						break;
 					case 'tag':
-						$args['tag__in'] = wp_get_post_tags($post->id);
+						$tags = wp_get_post_tags($post->ID);
+						if (!empty($tags)) {
+							$tag_ids = wp_list_pluck($tags, 'term_id');
+							$args['tag__in'] = $tag_ids;
+						}
 						break;
 				}
 			}
@@ -186,19 +239,30 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 			if ($request->get_param('pod_relationship')) {
 				if (function_exists('pods')) {
 					$pod = pods($post->post_type, $post->ID, true);
-					// error_log($request->get_param('pod_relationship'));
-					$related = $pod->field($request->get_param('pod_relationship'));
-					$ids = [];
-					foreach ($related as $item) $ids[] = $item['ID'];
-					// error_log(print_r($ids, true));
-					$args['post__in'] = $ids;
+					if ($pod && $pod->valid()) {
+						// error_log($request->get_param('pod_relationship'));
+						$related = $pod->field($request->get_param('pod_relationship'));
+						if ($related && is_array($related)) {
+							$ids = [];
+							foreach ($related as $item) {
+								if (isset($item['ID'])) {
+									$ids[] = $item['ID'];
+								}
+							}
+							// error_log(print_r($ids, true));
+							if (!empty($ids)) {
+								$args['post__in'] = $ids;
+							}
+						}
+					}
 				}
 			}
 
 			// Inclusions/Exclusions for certain posts
 
 			if ($request->get_param('exclude_current')) {
-				$args['post__not_in'] = array_merge([$args['post__not_in']], [$post->id]);
+				$existing_not_in = isset($args['post__not_in']) ? $args['post__not_in'] : [];
+				$args['post__not_in'] = array_merge($existing_not_in, [$post->ID]);
 			}
 
 			// Date Range Restrictions
@@ -271,21 +335,25 @@ add_action('wp_loaded', function() { // https://developer.wordpress.org/rest-api
 
 
 // Enqueue the block editor script
-wp_enqueue_script('query',
-	plugins_url('query-loop-extended.js', __FILE__),
-	array('wp-blocks', 'wp-editor'),
-);
+add_action('enqueue_block_editor_assets', function() {
+	wp_enqueue_script('query-loop-extended',
+		plugins_url('query-loop-extended.js', __FILE__),
+		array('wp-blocks', 'wp-editor'),
+	);
+});
 
 // Function to count post views
 function count_post_views() {
-	if (is_single()) {
+	if (is_single() && !is_user_logged_in()) { // Only count for non-logged-in users to avoid inflating counts
 		global $post;
-		$views = get_post_meta($post->ID, 'views_count', true);
-		if ($views == '') {
-			update_post_meta($post->ID, 'views_count', 1);
-		} else {
-			$views++;
-			update_post_meta($post->ID, 'views_count', $views);
+		if ($post && $post->ID) {
+			$views = get_post_meta($post->ID, 'views_count', true);
+			if ($views == '') {
+				update_post_meta($post->ID, 'views_count', 1);
+			} else {
+				$views = intval($views) + 1;
+				update_post_meta($post->ID, 'views_count', $views);
+			}
 		}
 	}
 }
