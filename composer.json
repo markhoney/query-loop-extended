@@ -1,0 +1,43 @@
+{
+    "name": "honeychurch/query-loop-extended",
+    "description": "Extends the Query Loop block to allow for a much more extensive filtering and ordering.",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "Mark Honeychurch",
+            "email": "mark@honeychurch.org",
+            "homepage": "https://mark.honeychurch.org"
+        }
+    ],
+    "require": {
+        "php": ">=7.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0",
+        "yoast/phpunit-polyfills": "^1.0",
+        "brain/monkey": "^2.6",
+        "mockery/mockery": "^1.4"
+    },
+    "autoload": {
+        "psr-4": {
+            "QueryLoopExtended\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "QueryLoopExtended\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test:coverage": "phpunit --coverage-html coverage",
+        "test:unit": "phpunit --testsuite=unit",
+        "test:integration": "phpunit --testsuite=integration"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
